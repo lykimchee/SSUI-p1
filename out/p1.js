@@ -1,30 +1,9 @@
 "use strict";
-//=====================================================================
-//=====================================================================
-// Skeleton Code for:
-// Fitts Law Data Collection User Interface (AKA SSUI Project #1) v1.0a 
-// by Scott Hudson  8/2023
-//
-// This code provides a small "micro-toolkit" for building very simple 
-// interfaces, primarily via subclasses of the provided UIClass and 
-// ScreenObject base-classes.  (These should not be changed.)
-//
-// Also provided are various piece of class definition and other code
-// which provide a "skeleton" that you can fill out to complete Project #1
-// (a "Fitts Law Data Collection" UI).  Please refer to the project handout
-// and the insructions given in lab for details on what your interface 
-// should do when it is completed.
-//
-// The places in the code skeleton which you should provide include 
-// (at least) all those which are marked with a comments of the form:
-//    // === YOUR CODE HERE ===
-//
-//=====================================================================
-//========================================
-//========================================
-// === DON't MODIFY THE FOLLOWING CODE ===
-//========================================
-//========================================
+///=====================================================================
+// Fitt's Law Tester
+// SSUI Programming Assignment 1
+// Lynn Kim
+//======================================================================
 ///=====================================================================
 // Utility functions
 //=====================================================================
@@ -60,7 +39,7 @@ function isCanvasRenderingContext2D(ctx) {
 // This class provides a generic base class that manages a set of objects (of type 
 // ScreenObject) making up a UI.  It provides generic functions for drawing, handling 
 // input, etc. with the details handled by a specialized sub-class and the objects making 
-// up the interface
+// up the interface.
 class UIClass {
     get currentState() { return this._currentState; }
     set currentState(v) { this._currentState = v; }
@@ -75,7 +54,7 @@ class UIClass {
     constructor(canvasTagID) {
         // A string indicating one of several global states that the UI can be in
         // The meaning of these strings is detrmined by the sub-class.
-        this._currentState = '';
+        this._currentState = "";
         // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . . . . 
         // Has something been changed such that we need to redraw?
         this._needsRedraw = false;
@@ -99,11 +78,11 @@ class UIClass {
         // sub-class will build it's objects here
     }
     // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . . . . 
-    // Start the UI running by configuring it with the state 'start', doing a 
+    // Start the UI running by configuring it with the state "start", doing a 
     // redraw, and setting up event handling (currently only of clicks)
     run() {
         // configure the interface initial state and draw it
-        this.configure('start');
+        this.configure("start");
         this.needsRedraw = true;
         this.redraw();
         // set up an event handler for the canvas to start processing events
@@ -376,18 +355,19 @@ class FittsTestUI extends UIClass {
     // Configure the UI to match the current state.  This moves the interface to it's new 
     // state by changing our (static) UI objects as needed, and settng the 
     // visibilty of objects.  This interface understands the following global states:
-    //   'start'         -- we have not started the first trial
-    //   'begin_trial'   -- a trial has begun (reticle should up awaiting click)
-    //   'in_trial'      -- trial has started (target should be up awaitig click)
-    //   'ended'         -- all trials are done
+    //   "start"         -- we have not started the first trial
+    //   "begin_trial"   -- a trial has begun (reticle should up awaiting click)
+    //   "in_trial"      -- trial has started (target should be up awaitig click)
+    //   "ended"         -- all trials are done
     //
     configure(newState) {
         // Be a bit tolerant of variant forms...
         newState = newState.toLowerCase();
-        newState = newState.replace('-', '_');
+        newState = newState.replace("-", "_");
         this.currentState = newState;
         switch (this.currentState) {
-            case 'start':
+            // Display a background screen with instructions
+            case "start":
                 this.theBackground.msg1 = "Press anywhere to begin";
                 this.theBackground.msg2 =
                     "  For each trial click the center of the blue target to begin";
@@ -397,13 +377,13 @@ class FittsTestUI extends UIClass {
                 // a bit more left to do...
                 // === YOUR CODE HERE ===
                 break;
-            case 'begin_trial':
+            case "begin_trial":
                 // === YOUR CODE HERE ===
                 break;
-            case 'in_trial':
+            case "in_trial":
                 // === YOUR CODE HERE ===
                 break;
-            case 'ended':
+            case "ended":
                 // === YOUR CODE HERE ===
                 // produce a dump of our data records on the console
                 this.presentData();
@@ -414,13 +394,13 @@ class FittsTestUI extends UIClass {
     }
     // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . . . . 
     // Start the display of a new trial in the interface by setting new positions for our 
-    // reticle and target and changing the global state to 'begin_trial' (or 'ended' if 
+    // reticle and target and changing the global state to "begin_trial" (or "ended" if 
     // we have already done all our trials).
     newTrial() {
         // count the trial and go to the end state if we've done them all
         this.trialCount++;
         if (this.trialCount > this.MAX_TRIALS) {
-            this.configure('ended');
+            this.configure("ended");
         }
         else { // otherwise we have a normal trial...
             // make new random locations for reticle and target 
@@ -466,7 +446,7 @@ class FittsTestUI extends UIClass {
 // of a center position and diameter, which is translated into a square bounding box
 // for the super-class.  The object is displayed as a filled circle with an outline.
 // Input is only accpet within the circle (not the entire bounding box).
-// This object is used when the interface is in the 'in_trial' state and clicking
+// This object is used when the interface is in the "in_trial" state and clicking
 // on it ends the trial.
 class Target extends ScreenObject {
     get parentUI() { return this._parentUI; }
@@ -492,7 +472,7 @@ class Target extends ScreenObject {
         super(centX - diam / 2, centY - diam / 2, diam, diam, parent);
         // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . . . . 
         // Color we are drawn with
-        this.TARGET_COLOR = 'palegreen';
+        this.TARGET_COLOR = "palegreen";
         this._parentUI = parent;
     }
     // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . . . . 
@@ -509,7 +489,7 @@ class Target extends ScreenObject {
         // === END OF CODE TO BE REMOVED ===
     }
     // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . . . . 
-    // Handle click input.  The interface should be in the 'in_trial' state,
+    // Handle click input.  The interface should be in the "in_trial" state,
     // in which case we respond to this input by ending the current trial
     // and starting a new one.
     handleClickAt(ptX, ptY) {
@@ -552,8 +532,8 @@ class Reticle extends Target {
     }
     // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . . . . 
     // Handle a potential click input.  When responding to this input we 
-    // expect to be in the 'begin_trial' interface state and will respond 
-    // by starting the trial timer and moving to the 'in_trial' state.
+    // expect to be in the "begin_trial" interface state and will respond 
+    // by starting the trial timer and moving to the "in_trial" state.
     handleClickAt(ptX, ptY) {
         // === YOUR CODE HERE ===
         // === REMOVE THE FOLLOWING CODE (which is here so the skeleton code compiles) ===
@@ -567,11 +547,11 @@ Reticle.RETICLE_DIAM = 100;
 Reticle.RETICLE_INNER_DIAM = 20;
 // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . . . . 
 // Color we are drawn with
-Reticle.RETICLE_COLOR = 'lightsteelblue';
+Reticle.RETICLE_COLOR = "lightsteelblue";
 //---------------------------------------------------------------------
 // Class implementing a background text prompting display which covers the 
 // whole canvas. This object presents up to three lines of text messages near its 
-// top left.  When the interface is in the 'start' state it responds to a click anywhere
+// top left.  When the interface is in the "start" state it responds to a click anywhere
 // within its bounds, and responds to this by starting the first trial.  At other times
 // clicks are ignored and not processed.
 class BackgroundDisplay extends ScreenObject {
@@ -598,18 +578,24 @@ class BackgroundDisplay extends ScreenObject {
         if (!this.visible)
             return;
         // Establish font and get measurements
-        ctx.font = "24pt Arial";
-        ctx.fillStyle = 'black';
+        ctx.font = "Italic Bold 24pt Helvetica";
+        ctx.fillStyle = "black";
         const metrics = ctx.measureText("Texty");
         const fontHeight = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
         const leading = 10;
         // Track line positions
         let ypos = 20 + fontHeight;
         let xpos = 10;
-        // === YOUR CODE HERE ===
+        // Draw messages
+        ctx.fillText(this.msg1, xpos, ypos);
+        xpos += leading;
+        ypos += fontHeight;
+        ctx.fillText(this.msg2, xpos, ypos);
+        ypos += fontHeight;
+        ctx.fillText(this.msg3, xpos, ypos);
     }
     // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . . . . 
-    // Handle click input.  The interface should be in the 'start' state,
+    // Handle click input.  The interface should be in the "start" state,
     // in which case we respond to this input by starting a new trial
     handleClickAt(ptX, ptY) {
         // === YOUR CODE HERE ===
