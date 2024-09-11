@@ -358,13 +358,13 @@ class FittsTrialRecord {
 
     toString() : string {
         // Excel friendly (CSV) format...
-        return `${twoPlaces(this.startTime)}, ${twoPlaces(this.endTime)}, ` +
-            `${twoPlaces(this.dist)}, ${twoPlaces(this.targetDiam)}`;
+        // return `${twoPlaces(this.startTime)}, ${twoPlaces(this.endTime)}, ` +
+        //     `${twoPlaces(this.dist)}, ${twoPlaces(this.targetDiam)}`;
 
         // more human readable format...
-        // return `[start:${twoPlaces(this.startTime)}, end:${twoPlaces(this.endTime)}, ` +
-        //         `dist:${twoPlaces(this.dist)}, w:${twoPlaces(this.targetDiam)}] ` + 
-        //         `dur=${twoPlaces(this.duration)}msec ID=${twoPlaces(this.indexOfDiff)}`;
+        return `[start:${twoPlaces(this.startTime)}, end:${twoPlaces(this.endTime)}, ` +
+                `dist:${twoPlaces(this.dist)}, w:${twoPlaces(this.targetDiam)}] ` + 
+                `dur=${twoPlaces(this.duration)}msec ID=${twoPlaces(this.indexOfDiff)}`;
     }
 }
 
@@ -479,34 +479,55 @@ class FittsTestUI extends UIClass {
         switch (this.currentState) {
             // Display a background screen with instructions
             case "start":
+                // Set display text to instructions
                 this.theBackground.msg1 = "Press anywhere to begin";
                 this.theBackground.msg2 = 
-                    "  For each trial click the center of the blue target to begin";
+                    "For each trial click the center of the blue target to begin";
                 this.theBackground.msg3 = 
-                    "  Then click inside the green circle that appears";
+                    "Then click inside the green circle that appears";
+                // Hide Reticle and Target
                 this.theReticle.visible = false;
-
-                // a bit more left to do...
-                // === YOUR CODE HERE ===
-
+                this.theTarget.visible = false;
             break;
+
+            // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . .
+            
+            // Display Reticle user is required to place their mouse cursor on 
             case "begin_trial":
-                
-                // === YOUR CODE HERE ===
-        
+                // Set display text to only trial number
+                this.theBackground.msg1 = `Trial #${this.trialCount} of 10`;
+                this.theBackground.msg2 = "";
+                this.theBackground.msg3 = "";
+                // Display Reticle but hide Target
+                this.theReticle.visible = true;
+                this.theTarget.visible = false;
             break;
+
+            // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . .
+            
+            // Display a random sized Target (different from Reticle)
             case "in_trial":
-                
-                // === YOUR CODE HERE ===
-        
+                // "Remove" display text
+                this.theBackground.msg1 = "";
+                // Display Target but hide Reticle
+                this.theReticle.visible = false;
+                this.theTarget.visible = true;
             break;
+
+            // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . .
+            
+            // Shows informational screen that informs user game has ended
             case "ended":
-                
-                // === YOUR CODE HERE ===
-        
+                this.theBackground.msg1 = "Done! Refresh the page to start again.";
+                // Hide both reticle and target
+                this.theReticle.visible = false;
+                this.theTarget.visible = false;
                 // produce a dump of our data records on the console
                 this.presentData();
             break;
+
+            // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . .
+
             default: 
                 throw Error(`Unknown UI state ${newState} passed to FittsTestUI.configure()`);
         }
@@ -532,8 +553,11 @@ class FittsTestUI extends UIClass {
             // make new random locations for reticle and target 
             const {retX:retX, retY:retY, targX:targX, targY:targY, targD:targDiam} = 
                 pickLocationsAndSize(this.canvas.width,this.canvas.height);
-
-            // === YOUR CODE HERE ===
+            // set new Reticle and Target locations
+            this.theReticle.newGeom(retX, retY);
+            this.theTarget.newGeom(targX, targY, targDiam);
+            // change screen to trial screen with Reticle
+            this.configure("begin_trial");
         }
     }
 
@@ -557,6 +581,7 @@ class FittsTestUI extends UIClass {
         // can record those at the end of the trial
         this.lastTrialLocation = [startLocX, startLocY];
         this.lastStartTime = performance.now();  // get msec past the epoc
+        this.configure("in_trial");
     }
 
     // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . . . . 
@@ -578,13 +603,12 @@ class FittsTestUI extends UIClass {
 
     // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . . . . 
 
-    // Present the data we have collected after a set of trials completes.
-    // This currently just prints the data to the console in a CSV format.
+    // Present the data we have collected after a set of trials completes
+    // to the console.
     presentData() {
-        // console.log("Data dump...");
+        console.log("Data dump...");
         for (let i = 0; i < this.trialData.length; i++) {
-            // console.log("" + i + ":" + this.trialData[i].toString());
-            console.log(this.trialData[i].toString());
+            console.log("Trial " + i + ":" + this.trialData[i].toString());
         }
     }
 }
@@ -619,17 +643,21 @@ class Target extends ScreenObject{
     // optional diameter.  If diameter is not include the size is left unchanged.
     // If the diameter is supplied, both the width and height are set to that value.
     newGeom(newCentX : number, newCentY : number, newDiam? : number) {
-        
-        // === YOUR CODE HERE ===
-        
+        this.centerX = newCentX;
+        this.centerY = newCentY;
+        if (newDiam) this.diam = newDiam;
         this.declareDamaged();
     }
     
     // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . . . . 
 
     // Color we are drawn with
-    readonly TARGET_COLOR : string = "palegreen";
-    get color() : string {return this.TARGET_COLOR;}
+    readonly FILL_COLOR : string = "palegreen";
+    get color() : string {return this.FILL_COLOR;}
+
+    // Color of target border
+    readonly STROKE_COLOR : string = "green";
+    get strokeColor() : string {return this.STROKE_COLOR;}
 
     // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . . . . 
 
@@ -643,21 +671,30 @@ class Target extends ScreenObject{
     
     // Draw the object as a filled and outlined circle
     override draw(ctx : CanvasRenderingContext2D) : void {
-        
-        // === YOUR CODE HERE ===
-        
+        if (!this.visible) return;
+
+        // Path the full circle from 0 to 2pi
+        ctx.beginPath();
+        ctx.arc(this.centerX, this.centerY, this.radius, 0, 2 * Math.PI);
+        // Set colors
+        ctx.strokeStyle = this.STROKE_COLOR;
+        ctx.fillStyle = this.FILL_COLOR;
+        // Draw and color the circle
+        ctx.stroke();
+        ctx.fill();
     }
 
     // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . . . . 
 
     // Pick function.  We only pick within our circle, not the entire bounding box
     override pickedBy(ptX : number, ptY : number) : boolean {
-        
-        // === YOUR CODE HERE ===
-        
-        // === REMOVE THE FOLLOWING CODE (which is here so the skeleton code compiles) ===
-        return false;
-        // === END OF CODE TO BE REMOVED ===
+        // Calculate x and y offsets from center
+        const dx = Math.abs(this.centerX - ptX);
+        const dy = Math.abs(this.centerY - ptY);
+        const dist = Math.hypot(dx,dy);
+        // Circle was "picked" if distance of click from center is
+        // less than the radius of the circle
+        return (dist < this.radius);
     }
 
     // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . . . . 
@@ -666,13 +703,14 @@ class Target extends ScreenObject{
     // in which case we respond to this input by ending the current trial
     // and starting a new one.
     override handleClickAt(ptX : number, ptY : number) : boolean {
-        
-        // === YOUR CODE HERE ===
-        
-        // === REMOVE THE FOLLOWING CODE (which is here so the skeleton code compiles) ===
-        return false;
-        // === END OF CODE TO BE REMOVED ===
+        if (UI.currentState != "in_trial") return false;
 
+        if (this.pickedBy(ptX, ptY)) {
+            UI.recordTrialEnd(ptX, ptY, this.diam);
+            UI.newTrial();
+            return true;
+        }
+        return false;
     }
 }
 
@@ -698,37 +736,80 @@ class Reticle extends Target {
     static readonly RETICLE_COLOR : string = "lightsteelblue";
     override get color() : string {return Reticle.RETICLE_COLOR;}
 
+    // Color of target border
+    readonly STROKE_COLOR : string = "blue";
+    override get strokeColor() : string {return this.STROKE_COLOR;}
+
     // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . . . . 
     
     // Constructor based on center and diameter
     constructor(centerX : number, centerY : number, parent : FittsTestUI) {
         // let the super-class create and initialize it's part
-        super(centerX,centerY,42/*placeholder value*/, parent);
+        super(centerX,centerY,50/*placeholder value*/, parent);
         
         // use a fixed diameter and different color
         this._w = this._h = Reticle.RETICLE_DIAM;
     }
 
-    // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . . . . 
+    // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . . . .
+
+    // Draws the cross hairs of the reticle. Assumes strokeStyle has been
+    // already set to the appropriate color.
+    drawCrossHairs(ctx : CanvasRenderingContext2D) : void {
+        // Vertical cross hair line
+        ctx.beginPath();
+        const y1 = this.centerY - this.radius;
+        const y2 = this.centerY + this.radius;
+        ctx.moveTo(this.centerX, y1);
+        ctx.lineTo(this.centerX, y2);
+        ctx.stroke();
+        // Horizontal cross hair line
+        ctx.beginPath();
+        const x1 = this.centerX - this.radius;
+        const x2 = this.centerX + this.radius;
+        ctx.moveTo(x1, this.centerY);
+        ctx.lineTo(x2, this.centerY);
+        ctx.stroke();
+    }
 
     // Draw the reticle.  This includes cross hair lines and an inner "aiming"
     // circle that indicates the active clickable region of the object.
     override draw(ctx : CanvasRenderingContext2D) : void {
-        
-        // === YOUR CODE HERE ===
+        if (!this.visible) return;
 
+        // DRAWING RETICLE
+        // Path the full circle from 0 to 2pi
+        ctx.beginPath();
+        ctx.arc(this.centerX, this.centerY, Reticle.RETICLE_DIAM/2,
+                0, 2 * Math.PI);
+        // Set colors
+        ctx.strokeStyle = this.STROKE_COLOR;
+        ctx.fillStyle = Reticle.RETICLE_COLOR;
+        // Draw and color the circle
+        ctx.stroke();
+        ctx.fill();
+
+        // DRAWING "AIMING" LINES
+        ctx.strokeStyle = "black"; // aiming lines black for visibility
+        this.drawCrossHairs(ctx);
+        // Drawing inner circle
+        ctx.beginPath();
+        ctx.arc(this.centerX, this.centerY, Reticle.RETICLE_INNER_DIAM/2,
+                0, 2 * Math.PI);
+        ctx.stroke();
     }
 
     // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . . . . 
 
     // Picking function. We are only picked within our small center region.
     override pickedBy(ptX : number, ptY : number) : boolean {
-        
-        // === YOUR CODE HERE ===
-        
-        // === REMOVE THE FOLLOWING CODE (which is here so the skeleton code compiles) ===
-        return false;
-        // === END OF CODE TO BE REMOVED ===
+        // Calculate x and y offsets from center
+        const dx = Math.abs(this.centerX - ptX);
+        const dy = Math.abs(this.centerY - ptY);
+        const dist = Math.hypot(dx,dy);
+        // Circle was "picked" if distance of click from center is
+        // less than the radius of the inner region
+        return (dist < Reticle.RETICLE_INNER_DIAM/2);
     }
 
     // . . . . . . . . . . . .  . . . . . . . . . . . . . . . . . . . . . . 
@@ -737,12 +818,13 @@ class Reticle extends Target {
     // expect to be in the "begin_trial" interface state and will respond 
     // by starting the trial timer and moving to the "in_trial" state.
     override handleClickAt(ptX : number, ptY : number) : boolean {
-        
-        // === YOUR CODE HERE ===
-        
-        // === REMOVE THE FOLLOWING CODE (which is here so the skeleton code compiles) ===
+        if (UI.currentState != "begin_trial") return false;
+
+        if (this.pickedBy(ptX, ptY)) {
+            UI.startTrial(ptX, ptY);
+            return true;
+        }
         return false;
-        // === END OF CODE TO BE REMOVED ===
     }
 }
 
@@ -797,13 +879,13 @@ class BackgroundDisplay extends ScreenObject{
         ctx.fillStyle = "black";
         const metrics : TextMetrics = ctx.measureText("Texty");
         const fontHeight : number = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
-        const leading = 10;
+        const leading = 20;
 
         // Track line positions
         let ypos : number = 20 + fontHeight;
-        let xpos : number = 10;
+        let xpos : number = 20;
 
-        // Draw messages
+        // Draw the messages
         ctx.fillText(this.msg1, xpos, ypos);
         xpos += leading;
 
@@ -819,12 +901,10 @@ class BackgroundDisplay extends ScreenObject{
     // Handle click input.  The interface should be in the "start" state,
     // in which case we respond to this input by starting a new trial
     override handleClickAt(ptX : number, ptY : number) : boolean {
-        
-        // === YOUR CODE HERE ===
-        
-        // === REMOVE THE FOLLOWING CODE (which is here so the skeleton code compiles) ===
-        return false;
-        // === END OF CODE TO BE REMOVED ===
+        if (UI.currentState != "start") return false;
+
+        UI.newTrial();
+        return true; // indicates we need to redraw
     }
 }
 
